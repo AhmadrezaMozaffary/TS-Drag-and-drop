@@ -1,3 +1,46 @@
+// Validation logic
+interface Validatable {
+  value: string | number;
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+}
+
+const validate = function (validatableObj: Validatable): boolean {
+  let isValid = true;
+  // Required or NOT
+  if (validatableObj.required) {
+    isValid = isValid && validatableObj.value.toString().trim().length !== 0;
+  }
+  // Satisfies minLength ?
+  if (
+    validatableObj.minLength != null &&
+    typeof validatableObj.value === "string"
+  ) {
+    isValid =
+      isValid && validatableObj.value.length >= validatableObj.minLength;
+  }
+  // Satisfies maxLength ?
+  if (
+    validatableObj.maxLength != null &&
+    typeof validatableObj.value === "string"
+  ) {
+    isValid =
+      isValid && validatableObj.value.length <= validatableObj.maxLength;
+  }
+  // Minimum
+  if (validatableObj.min != null && typeof validatableObj.value === "number") {
+    isValid = isValid && validatableObj.value >= validatableObj.min;
+  }
+  // Maximum
+  if (validatableObj.max != null && typeof validatableObj.value === "number") {
+    isValid = isValid && validatableObj.value <= validatableObj.max;
+  }
+  return isValid;
+};
+
 // Auto bind the "this" keyword
 const autoBind = function (
   _1: any,
@@ -54,10 +97,23 @@ class ProjectInput {
     const enteredPeople = this.peopleInpEl.value;
 
     // Validation
+    const titleValid: Validatable = { value: enteredTitle, required: true };
+    const descValid: Validatable = {
+      value: enteredDesc,
+      required: true,
+      minLength: 5,
+    };
+    const peopleValid: Validatable = {
+      value: +enteredPeople,
+      required: true,
+      min: 1,
+      max: 10,
+    };
+
     if (
-      enteredTitle.trim().length === 0 ||
-      enteredDesc.trim().length === 0 ||
-      enteredPeople.trim().length === 0
+      !validate(titleValid) ||
+      !validate(descValid) ||
+      !validate(peopleValid)
     ) {
       alert("Please fill out the form, completely !");
       return;
