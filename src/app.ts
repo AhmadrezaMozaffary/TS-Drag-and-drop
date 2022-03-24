@@ -1,3 +1,21 @@
+// Auto bind the "this" keyword
+const autoBind = function (
+  _1: any,
+  _2: string,
+  descriptor: PropertyDescriptor
+) {
+  const originalMethod = descriptor.value;
+  const adjDescriptor: PropertyDescriptor = {
+    configurable: true,
+    get() {
+      const boundFn = originalMethod.bind(this);
+      return boundFn;
+    },
+  };
+  return adjDescriptor;
+};
+
+// ProjectInput
 class ProjectInput {
   templateEl: HTMLTemplateElement;
   hostEl: HTMLDivElement;
@@ -30,12 +48,13 @@ class ProjectInput {
     this.attachToHost(this.element);
   }
 
+  @autoBind
   private submitForm(evnet: Event) {
     evnet.preventDefault();
   }
 
   private configureForm() {
-    this.element.addEventListener("submit", this.submitForm.bind(this));
+    this.element.addEventListener("submit", this.submitForm);
   }
 
   private attachToHost(el: HTMLElement) {
