@@ -48,9 +48,41 @@ class ProjectInput {
     this.attachToHost(this.element);
   }
 
+  private gatherUserInp(): [string, string, number] | void {
+    const enteredTitle = this.titleInpEl.value;
+    const enteredDesc = this.descInpEl.value;
+    const enteredPeople = this.peopleInpEl.value;
+
+    // Validation
+    if (
+      enteredTitle.trim().length === 0 ||
+      enteredDesc.trim().length === 0 ||
+      enteredPeople.trim().length === 0
+    ) {
+      alert("Please fill out the form, completely !");
+      return;
+    } else {
+      return [enteredTitle, enteredDesc, +enteredPeople];
+    }
+  }
+
+  private clearInputFields() {
+    this.titleInpEl.value = "";
+    this.descInpEl.value = "";
+    this.peopleInpEl.value = "";
+  }
+
   @autoBind
   private submitForm(evnet: Event) {
     evnet.preventDefault();
+    const userInp = this.gatherUserInp();
+
+    if (!Array.isArray(userInp)) return;
+
+    const [title, desc, people] = userInp;
+    console.log(title, desc, people);
+
+    this.clearInputFields();
   }
 
   private configureForm() {
