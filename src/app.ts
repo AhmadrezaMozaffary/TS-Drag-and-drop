@@ -1,3 +1,56 @@
+// Project type
+enum ProjectStatus {
+  Active,
+  Finished,
+}
+class Project {
+  constructor(
+    public id: string,
+    public title: string,
+    public description: string,
+    public people: number,
+    public status: ProjectStatus
+  ) {}
+}
+
+// Project State Management > Singleton
+type Listener = (items: Project[]) => void;
+class ProjectState {
+  private listeners: Listener[] = [];
+  private projects: Project[] = [];
+  private static instance: ProjectState;
+
+  private constructor() {}
+
+  static getInstance() {
+    if (this.instance) {
+      return this.instance;
+    }
+    this.instance = new ProjectState();
+    return this.instance;
+  }
+
+  addListener(listenerFn: Listener) {
+    // Publisher-Subscriber pattern
+    this.listeners.push(listenerFn);
+  }
+
+  addProject(title: string, desc: string, numOfPeople: number) {
+    const newProject = new Project(
+      crypto.randomUUID().slice(-6),
+      title,
+      desc,
+      numOfPeople,
+      ProjectStatus.Active
+    );
+
+    this.projects.push(newProject);
+    this.listeners.forEach((listenerFn) => listenerFn(this.projects.slice()));
+  }
+}
+
+const projectState = ProjectState.getInstance(); // Singleton
+
 // Validation logic
 interface Validatable {
   value: string | number;
@@ -63,12 +116,14 @@ class ProjectList {
   templateEl: HTMLTemplateElement;
   hostEl: HTMLDivElement;
   element: HTMLElement;
+  assignedProj: Project[];
 
   constructor(private type: "active" | "finished") {
     this.templateEl = document.querySelector(
       "#project-list"
     )! as HTMLTemplateElement;
     this.hostEl = document.querySelector("#app")! as HTMLDivElement;
+    this.assignedProj = [];
 
     const importedHTMLcontent = document.importNode(
       this.templateEl.content,
@@ -78,8 +133,30 @@ class ProjectList {
     this.element = importedHTMLcontent.firstElementChild as HTMLElement; // section#projects
     this.element.id = `${this.type}-projects`;
 
+    projectState.addListener((projects: Project[]) => {
+      const releventProjs = projects.filter((prj) => {
+        if (this.type === "active") {
+          return prj.status === ProjectStatus.Active;
+        }
+        return prj.status === ProjectStatus.Finished;
+      });
+      this.assignedProj = releventProjs;
+      this.renderProjects();
+    });
+
     this.attachToHost(this.element);
     this.renderContect();
+  }
+
+  private renderProjects() {
+    const listEl = document.querySelector(
+      `#${this.type}-projects-list`
+    )! as HTMLUListElement;
+    this.assignedProj.forEach((proj) => {
+      const listItem = document.createElement("li");
+      listItem.textContent = proj.title;
+      listEl.appendChild(listItem);
+    });
   }
 
   private renderContect() {
@@ -173,7 +250,7 @@ class ProjectInput {
     if (!Array.isArray(userInp)) return;
 
     const [title, desc, people] = userInp;
-    console.log(title, desc, people);
+    projectState.addProject(title, desc, people);
 
     this.clearInputFields();
   }
