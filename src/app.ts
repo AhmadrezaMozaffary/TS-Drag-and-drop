@@ -152,7 +152,9 @@ class ProjectList {
     const listEl = document.querySelector(
       `#${this.type}-projects-list`
     )! as HTMLUListElement;
+    listEl.innerHTML = ""; //Remove duplicate Els
     this.assignedProj.forEach((proj) => {
+      // Create and append an "li" element to the DOM > Active list
       const listItem = document.createElement("li");
       listItem.textContent = proj.title;
       listEl.appendChild(listItem);
